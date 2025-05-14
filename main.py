@@ -1,6 +1,5 @@
 import pandas as pd
 import pyperclip
-import pyautogui
 import sys
 import keyboard
 
@@ -38,7 +37,7 @@ def main():
     while current_index < len(cell_values):
         # Wait for either advance command or exit
         try:
-            event = keyboard.read_event()
+            event = keyboard.read_event() 
             if event.event_type == keyboard.KEY_DOWN:
                 if event.name == 'esc':
                     print("\nExiting...")
@@ -57,6 +56,5 @@ def main():
             break
 
     print("\nPasting session ended.")
-
 if __name__ == "__main__":
     main()
