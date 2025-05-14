@@ -2,6 +2,7 @@ import pandas as pd
 import pyperclip
 import pyautogui
 import sys
+import keyboard
 
 def main():
     if len(sys.argv) != 2:
@@ -11,13 +12,11 @@ def main():
     file_path = sys.argv[1]
 
     try:
-        # Read Excel file (assuming no header row)
         df = pd.read_excel(file_path, header=None)
     except Exception as e:
         print(f"Error reading Excel file: {e}")
         return
 
-    # Collect all cell values in row-major order
     cell_values = []
     for _, row in df.iterrows():
         for cell in row:
@@ -25,21 +24,39 @@ def main():
 
     print(f"Loaded {len(cell_values)} cells. Starting paste sequence...")
     print("-----------------------------------------------------------")
+    print("HOW TO USE:")
+    print("1. Focus target text field after this message")
+    print("2. First cell is automatically copied to clipboard")
+    print("3. Paste with Ctrl+V")
+    print("4. Press Ctrl+Right to advance to next cell")
+    print("5. Press Esc to exit at any time\n")
 
-    for i, value in enumerate(cell_values):
-        # Copy value to clipboard
-        pyperclip.copy(value)
-        
-        print(f"Cell {i+1} ready: {value[:50]}...")  # Show preview
-        
-        input("1. Focus target text box\n2. Press Enter to paste...")
-        
-        # Send paste command
-        pyautogui.hotkey('ctrl', 'v')
-        
-        print("Pasted! Waiting for next cell...\n")
+    current_index = 0
+    pyperclip.copy(cell_values[current_index])
+    print(f"Cell {current_index+1} ready: {cell_values[current_index][:50]}...")
 
-    print("All cells processed!")
+    while current_index < len(cell_values):
+        # Wait for either advance command or exit
+        try:
+            event = keyboard.read_event()
+            if event.event_type == keyboard.KEY_DOWN:
+                if event.name == 'esc':
+                    print("\nExiting...")
+                    break
+                
+                # Ctrl+Right arrow detection
+                if keyboard.is_pressed('ctrl') and event.name.lower() == 'v':
+                    current_index += 1
+                    if current_index < len(cell_values):
+                        pyperclip.copy(cell_values[current_index])
+                        print(f"\nCell {current_index+1} ready: {cell_values[current_index][:50]}...")
+                        # Auto-paste if desired (uncomment next line)
+                        # pyautogui.hotkey('ctrl', 'v')
+        except Exception as e:
+            print(f"\nError: {e}")
+            break
+
+    print("\nPasting session ended.")
 
 if __name__ == "__main__":
     main()
